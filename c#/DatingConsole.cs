@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+//using DatingImplementation;
+
 
 namespace DatingConsole
 {
@@ -42,58 +44,108 @@ namespace DatingConsole
                 }
             }
         }
-    }
 
 
 
-    //Implement yours
-    public class Person
-    {
-        private string v;
 
-        public object GirlFriend { get; internal set; }
-
-        public IEnumerable<object> GirlFriends { get; internal set; }
-
-        public bool Happy { get; internal set; }
-
-        //Parameterless Constuct
-        public Person()
+        public class Person
         {
+            private string v;
 
-        }
+            public Person()
+            {
 
-        public Person(string v)
-        {
-            this.v = v;
-        }
+            }
 
+            public Person(string v)
+            {
+                this.v = v;
+            }
 
-        internal string AskGirlOut(object girl)
-        {
-            throw new NotImplementedException();
-        }
+            public object GirlFriend { get; internal set; }
 
-        internal bool CrushOn(object girl)
-        {
-            throw new NotImplementedException();
-        }
+            public IEnumerable<object> GirlFriends { get; internal set; }
 
-        internal void EnjoyLife()
-        {
-            throw new NotImplementedException();
-        }
+            public bool Happy { get; internal set; }
 
-        internal void PrepareForMarriage()
-        {
-            throw new NotImplementedException();
-        }
+            internal string AskGirlOut(object girl)
+            {
+                throw new NotImplementedException();
+            }
 
-        internal void ReTry()
-        {
-            throw new NotImplementedException();
+            internal bool CrushOn(object girl)
+            {
+                throw new NotImplementedException();
+            }
+
+            internal void EnjoyLife()
+            {
+                throw new NotImplementedException();
+            }
+
+            internal void PrepareForMarriage()
+            {
+                throw new NotImplementedException();
+            }
+
+            internal void ReTry()
+            {
+                throw new NotImplementedException();
+            }
         }
     }
+
+
+
+    ////Implement yours
+    //namespace DatingImplementation
+    //{
+    //    public class Person
+    //    {
+    //        private string v;
+
+    //        public Person()
+    //        {
+
+    //        }
+
+    //        public Person(string v)
+    //        {
+    //            this.v = v;
+    //        }
+
+    //        public object GirlFriend { get; internal set; }
+
+    //        public IEnumerable<object> GirlFriends { get; internal set; }
+
+    //        public bool Happy { get; internal set; }
+
+    //        internal string AskGirlOut(object girl)
+    //        {
+    //            throw new NotImplementedException();
+    //        }
+
+    //        internal bool CrushOn(object girl)
+    //        {
+    //            throw new NotImplementedException();
+    //        }
+
+    //        internal void EnjoyLife()
+    //        {
+    //            throw new NotImplementedException();
+    //        }
+
+    //        internal void PrepareForMarriage()
+    //        {
+    //            throw new NotImplementedException();
+    //        }
+
+    //        internal void ReTry()
+    //        {
+    //            throw new NotImplementedException();
+    //        }
+    //    }
+    //}
 
 
     //Implement your exception
