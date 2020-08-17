@@ -1,0 +1,141 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web.Http;
+using AutoMapper;
+using eticketing_mvc.ModelDTOs;
+using eticketing_mvc.Models;
+using eticketing_mvc.Utilities;
+using eticketing_mvc.Utilities.Interfaces;
+using eticketing_mvc.Utilities.UoW;
+using Microsoft.AspNet.Identity;
+
+namespace eticketing_mvc.Controllers.API
+{
+    [Route("api/statuses/{action}")]
+    public class StatusController : ApiController
+    {
+        private readonly AppDbContext _context = new AppDbContext();
+        private readonly IUnitOfWork _uow;
+        private const string EntityName = "Status";
+
+        public StatusController()
+        {
+            _uow = new UnitOfWork(_context);
+        }
+
+        [HttpPost]
+        public IHttpActionResult CreateAdminStatus(NewStatusDto status)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(Messages.ProcessingError);
+            }
+
+
+            if (!User.Identity.IsAuthenticated) return BadRequest(Messages.AuthenticationRequired);
+            try
+            {
+                var destination = Mapper.Map<NewStatusDto, Status>(status);
+                destination.CreatedAt = DateTime.Now;
+                destination.StatusName = destination.StatusName.ToUpper();
+                destination.AppUserId = User.Identity.GetUserId();
+                _uow.Status.Add(destination);
+                _uow.Complete();
+                status.StatusId = destination.StatusId;
+            }
+            catch (Exception)
+            {
+                return BadRequest(Messages.EntityCreationError(EntityName));
+            }
+            return Ok(Messages.EntityCreationSuccess(EntityName));
+        }
+
+        [HttpGet]
+        public IHttpActionResult GetAllAdminStatus()
+        {
+            var statuses = _uow.Status.GetAll();
+            return Ok(statuses?.ToList() ?? new List<StatusDto>());
+        }
+
+        [HttpGet]
+        public IHttpActionResult GetAllStatuses()
+        {
+            var statuses = _uow.Status.GetAll();
+            return Ok(statuses?.OrderBy(o => o.StatusName).ToList() ?? new List<StatusDto>());
+        }
+
+        [HttpGet]
+        public IHttpActionResult StatusNameExists(string statusName)
+        {
+            if (statusName.Length < 3)
+            {
+                var error = new RecordExists
+                {
+                    Exists = true,
+                    Message =
+                        "Status name must at least 3 characters long."
+                };
+                return BadRequest(error.Message);
+            }
+
+            statusName = statusName.ToUpper();
+            var bus = _uow.Status.GetByExpression(r => r.StatusName.ToUpper() == statusName);
+            var exist = new RecordExists();
+            if (bus == null)
+            {
+                exist.Exists = false;
+            }
+            else
+            {
+                exist.Exists = true;
+                exist.Message = $"A Status with {statusName} already exists in the system.";
+            }
+            return Ok(exist);
+        }
+
+        [HttpPut]
+        public IHttpActionResult UpdateAdminStatus(int statusId, NewStatusDto status)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(Messages.ProcessingError);
+            }
+            var statusInDb = _context.Statuses.FirstOrDefault(r => r.StatusId == statusId);
+            if (statusInDb == null) return NotFound();
+            if (!User.Identity.IsAuthenticated) return BadRequest(Messages.AuthenticationRequired);
+            try
+            {
+                Mapper.Map(status, statusInDb);
+                statusInDb.StatusName = status.StatusName.ToUpper();
+                statusInDb.CreatedAt = DateTime.Now;
+                statusInDb.AppUserId = User.Identity.GetUserId();
+                _uow.Complete();
+                return Ok(Messages.EntityUpdationSuccess(EntityName));
+            }
+            catch (Exception)
+            {
+                return BadRequest(Messages.ProcessingError);
+            }
+        }
+
+        [HttpDelete]
+        public IHttpActionResult DeleteStatus(int statusId)
+        {
+            if (statusId <= 0) return BadRequest(Messages.IdError);
+            try
+            {
+                var status = _context.Statuses.Find(statusId);
+                if (status == null) return NotFound();
+                _context.Statuses.Remove(status);
+                _uow.Complete();
+            }
+            catch (Exception)
+            {
+
+                return Ok(Messages.EntityDeletionError(EntityName));
+            }
+            return Ok(Messages.EntityDeletionSuccess(EntityName));
+        }
+    }
+}

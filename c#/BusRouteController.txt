@@ -1,0 +1,96 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web.Http;
+using AutoMapper;
+using eticketing_mvc.ModelDTOs;
+using eticketing_mvc.Models;
+using eticketing_mvc.Utilities;
+using eticketing_mvc.Utilities.Interfaces;
+using eticketing_mvc.Utilities.UoW;
+using Microsoft.AspNet.Identity;
+
+namespace eticketing_mvc.Controllers.API
+{
+    [Route("api/routes/{action}")]
+    public class RouteController : ApiController
+    {
+        private readonly AppDbContext _context = new AppDbContext();
+        private readonly IUnitOfWork _uow;
+        private const string EntityName = "Route";
+
+        public RouteController()
+        {
+            _uow = new UnitOfWork(_context);
+        }
+
+        [HttpGet]
+        public IHttpActionResult GetActiveRoutes()
+        {
+            return Ok(new List<RouteDto>());
+        }
+
+        [HttpGet]
+        public IHttpActionResult GetAllAdminRoutes()
+        {
+            var routes = _uow.Route.GetAllAdminRoute();
+            var routesDto = routes?.ToList() ?? new List<RouteDto>();
+            return Ok(routesDto);
+        }
+
+        [HttpPost]
+        public IHttpActionResult CreateAdminRoute(NewRouteDto route)
+        {
+            if (!ModelState.IsValid) return BadRequest(Messages.ProcessingError);
+
+            try
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    var destination = Mapper.Map<NewRouteDto, Route>(route);
+                    destination.AppUserId = User.Identity.GetUserId();
+                    destination.CreatedAt = DateTime.Now;
+                    _uow.Route.Add(destination);
+                    _uow.Complete();
+                    return Ok(Messages.EntityCreationSuccess(EntityName));
+                }
+                else
+                {
+                    return BadRequest(Messages.AuthenticationRequired);
+                }
+            }
+            catch (Exception)
+            {
+                return BadRequest(Messages.ProcessingError);
+            }
+        }
+
+        [HttpPut]
+        public IHttpActionResult UpdateAdminRoute(int routeId, UpdateRouteDto route)
+        {
+            if (!ModelState.IsValid) return BadRequest(Messages.ProcessingError);
+            try
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    
+                    var destination = _context.Routes.Find(routeId);
+                    if (destination == null) return NotFound();
+                    Mapper.Map(route, destination);
+                    destination.AppUserId = User.Identity.GetUserId();
+                    destination.CreatedAt = DateTime.Now;
+                    _uow.Complete();
+                    return Ok(Messages.EntityUpdationSuccess(EntityName));
+                }
+                else
+                {
+                    return BadRequest(Messages.AuthenticationRequired);
+                }
+            }
+            catch (Exception)
+            {
+                return BadRequest(Messages.ProcessingError);
+            }
+        }
+    }
+}
