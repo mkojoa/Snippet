@@ -1,0 +1,9 @@
+In Controller,
+
+If you want to redirect a another website, simply we can use like,
+
+public ActionResult Redirect()
+{
+        //return View();
+        return Redirect("http://www.google.com");
+}

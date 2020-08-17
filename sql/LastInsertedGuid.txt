@@ -1,0 +1,23 @@
+ALTER PROCEDURE [dbo].[spUserGroup_Create]
+	@iAccountId uniqueIdentifier,
+	@iCompanyId uniqueIdentifier,
+	@iConcurrency int,
+	@iStatus int,
+	@iUserId uniqueIdentifier,
+	@szGroupName varchar(255)
+AS
+BEGIN 
+	        DECLARE @createdData table(pkId uniqueidentifier);
+
+			INSERT INTO Group
+				   (iAccountId  ,iCompanyId ,iConcurrency ,iStatus ,iUserId ,szGroupName ,dCreateDate ,dStampDate)
+			OUTPUT inserted.pkId into @createdData(pkId)
+			 VALUES
+				   (@iAccountId  ,@iCompanyId ,@iConcurrency ,@iStatus ,@iUserId ,@szGroupName ,GETDATE() ,GETDATE())
+
+				   SELECT pkId [CreatedResourceId] FROM @createdData
+
+			--SET @createdData = (select pkId from psHCMUserGroup where szGroupName =  @szGroupName); --(SELECT MAX(pkId) From psHCMUserGroup)
+			
+			--SELECT @createdData AS 'CreatedResourceId'
+END
