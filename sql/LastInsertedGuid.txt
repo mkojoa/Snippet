@@ -7,17 +7,19 @@ ALTER PROCEDURE [dbo].[spUserGroup_Create]
 	@szGroupName varchar(255)
 AS
 BEGIN 
-	        DECLARE @createdData table(pkId uniqueidentifier);
+                       -- declare 
+	               DECLARE @pkId table(pkId uniqueidentifier);
 
+			-- insert 
 			INSERT INTO Group
 				   (iAccountId  ,iCompanyId ,iConcurrency ,iStatus ,iUserId ,szGroupName ,dCreateDate ,dStampDate)
-			OUTPUT inserted.pkId into @createdData(pkId)
+			OUTPUT inserted.pkId into @pkId(pkId) -- get the created pkId created
 			 VALUES
 				   (@iAccountId  ,@iCompanyId ,@iConcurrency ,@iStatus ,@iUserId ,@szGroupName ,GETDATE() ,GETDATE())
 
-				   SELECT pkId [CreatedResourceId] FROM @createdData
-
-			--SET @createdData = (select pkId from psHCMUserGroup where szGroupName =  @szGroupName); --(SELECT MAX(pkId) From psHCMUserGroup)
-			
-			--SELECT @createdData AS 'CreatedResourceId'
+				   SELECT pkId [CreatedResourceId] FROM @pkId
 END
+
+
+--- NOTE 
+-- set the default pkId column in the table to newid()
