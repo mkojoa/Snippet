@@ -1,12 +1,66 @@
 
-
+-- PREVENT  CODE BLOCKS
 SET DATEFIRST  7, -- 1 = Monday, 7 = Sunday
     DATEFORMAT mdy, 
     LANGUAGE   US_ENGLISH;
 -- assume the above is here in all subsequent code blocks.
 
-DECLARE @StartDate  date = '20200101'; --'20201001' --
+--************************************************
+--CREATE NEEDED TABLES.
+CREATE TABLE TblDateDimension(
+[pkId] [uniqueidentifier] NOT NULL DEFAULT newid(),
+[TheDate] [date] NOT NULL, 
+[TheDay] [int] NOT NULL,
+[TheDaySuffix] [nvarchar](100) NOT NULL,
+[TheDayName] [nvarchar](50) NOT NULL,
+[TheDayOfWeek] [int] NOT NULL,
+[TheDayOfWeekInMonth]  [int] NOT NULL,         
+[TheDayOfYear] [int] NOT NULL,
+[IsWeekend] [bit] NOT NULL,        
+[TheWeek] [int] NOT NULL,  
+[TheISOweek] [int] NOT NULL,  
+[TheFirstOfWeek] [date] NOT NULL,     
+[TheLastOfWeek] [date] NOT NULL,      
+[TheWeekOfMonth] [int] NOT NULL,        
+[TheMonth] [int] NOT NULL,
+[TheMonthName] [nvarchar](100) NOT NULL,
+[TheFirstOfMonth] [date] NOT NULL,
+[TheLastOfMonth] [date] NOT NULL,     
+[TheFirstOfNextMonth] [date] NOT NULL,
+[TheLastOfNextMonth] [date] NOT NULL, 
+[TheQuarter] [int] NOT NULL,
+[TheFirstOfQuarter] [date] NOT NULL,  
+[TheLastOfQuarter] [date] NOT NULL,
+[TheYear]  [int] NOT NULL,
+[TheISOYear] [int] NOT NULL,         
+[TheFirstOfYear] [date] NOT NULL,     
+[TheLastOfYear] [date] NOT NULL,
+[IsLeapYear] [int] NOT NULL,          
+[Has53Weeks] [int] NOT NULL,         
+[Has53ISOWeeks] [int] NOT NULL,      
+[MMYYYY] [nvarchar](100) NOT NULL,             
+[Style101] [nvarchar](100) NOT NULL,           
+[Style103] [nvarchar](100) NOT NULL,           
+[Style112] [nvarchar](100) NOT NULL,          
+[Style120] [nvarchar](100) NOT NULL,
+)
+GO
+CREATE UNIQUE CLUSTERED INDEX PK_DateDimension ON dbo.TblDateDimension(TheDate);
 
+
+CREATE TABLE TblHolidayDimension
+(
+  pkId [uniqueidentifier] NOT NULL,
+  TheDate date NOT NULL,
+  HolidayText nvarchar(255) NOT NULL,
+  CONSTRAINT FK_TblDateDimension FOREIGN KEY(TheDate) REFERENCES dbo.TblDateDimension(TheDate)
+);
+
+CREATE CLUSTERED INDEX CIX_TblHolidayDimension ON dbo.TblHolidayDimension(TheDate);
+
+-- *********************************************************************************
+--DECLARE START & END DATE FOR POPULATION
+DECLARE @StartDate  date = '20200101'; --'20201001' --
 DECLARE @CutoffDate date = DATEADD(DAY, -1, DATEADD(YEAR, 30, @StartDate)); --'20201231' --
 
 ;WITH seq(n) AS 
@@ -91,7 +145,7 @@ SELECT *  FROM dim
   ORDER BY TheDate
   OPTION (MAXRECURSION 0);
 
-
+-- *****************************************************
 ;WITH x AS 
 (
   SELECT
@@ -154,6 +208,7 @@ ORDER BY TheDate;
 
 GO
 
+--**************************************************
 CREATE FUNCTION dbo.GetEasterHolidays(@TheYear INT) 
 RETURNS TABLE
 WITH SCHEMABINDING
@@ -176,6 +231,8 @@ RETURN
 );
 GO
 
+
+-- *********************************************
 INSERT dbo.TblHolidayDimension(TheDate, HolidayText)
   SELECT d.TheDate, h.HolidayText
     FROM dbo.TblDateDimension AS d
@@ -183,6 +240,8 @@ INSERT dbo.TblHolidayDimension(TheDate, HolidayText)
     WHERE d.TheDate = h.TheDate;
 GO
 
+
+--***********************************************
 CREATE VIEW TheCalendar AS 
   SELECT
     d.TheDate,
