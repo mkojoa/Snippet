@@ -12,6 +12,7 @@ using Microsoft.AspNet.Identity;
 
 namespace eticketing_mvc.Controllers.API
 {
+// move to genric controller
     [Route("api/statuses/{action}")]
     public class StatusController : ApiController
     {
