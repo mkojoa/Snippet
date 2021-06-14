@@ -1,0 +1,1 @@
+DELETE from [PersolHCM].dbo.psHCMOrgCodes where Len(szCode) >10
